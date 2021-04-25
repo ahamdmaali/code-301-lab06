@@ -11,8 +11,8 @@ server.get('/', (request, response) => {
  
 
  
-  response.status(200).json();
-  response.send('try another rout');
+  response.status(500).json();
+  response.send('Sorry, something went wrong');
   
  });
  
