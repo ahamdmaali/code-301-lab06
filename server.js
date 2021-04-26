@@ -6,19 +6,10 @@ const express = require('express');
 const server = express();
 
 const PORT = process.env.PORT || 4000;
-
-server.get('/', (request, response) => {
+const cors = require('cors');
+server.use(cors());
  
-
- 
-  response.status(500).json();
-  response.send('Sorry, something went wrong');
-  
- });
- 
-server.listen(PORT,()=>{
-  console.log(PORT)
-})
+server.listen(PORT,()=>{})
 
 
 let Location= function(locObj){
@@ -67,4 +58,6 @@ server.get('/weather', (request, response) => {
   
 });
 
-
+server.get('*', (req, res) => {
+  res.status(500).send('Sorry, something went wrong');
+})
