@@ -58,13 +58,6 @@ server.get('/weather', (request, response) => {
   
 });
 
-
-
-server.get('/', (request, response) => {
- 
-
- 
-  response.status(500).json();
-  response.send('Sorry, something went wrong');
-  
- });
+server.get('*', (req, res) => {
+  res.status(500).send('Sorry, something went wrong');
+})
