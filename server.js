@@ -5,15 +5,15 @@ require('dotenv').config();
 
 const express = require('express');
 const server = express();
-
 const PORT = process.env.PORT || 4500;
 const cors = require('cors');
+const pg = require('pg')
 server.use(cors());
  
 server.listen(PORT,()=>{})
 
 const superagent = require('superagent');
-
+const client = new pg.Client({ connectionString: process.env.DATABASE_URL,   ssl: { rejectUnauthorized: false } });
 
 
 
@@ -21,9 +21,27 @@ const superagent = require('superagent');
 server.get('/location',locationHandler) 
 server.get('/weather',weatherHandler)
 server.get('/park',parkHandler)
-function locationHandler(req, res) {
+server.get('*', (req, res) => {
+  res.status(500).send('Sorry, something went wrong');
+})
 
-    let cityName = req.query.city;
+
+function locationHandler(req,res){
+  let cityName = req.query.city;
+  let locName = req.query.loc_name;
+  let lon = req.query.longitude;
+  let lat = req.query.latitude;
+  let SQL = `INSERT INTO location (loc_name,longitude,latitude) VALUES ($1,$2,$3) RETURNING *;`;
+  let safeValues = [locName,lon,lat];
+  if(locName ===cityName ){
+    client.query(SQL,safeValues)
+    .then(result=>{
+        res.send(result.rows); 
+    })
+    .catch(error=>{
+      res.send(error);
+  })
+  }else{
     let key =  process.env.LOCATION_KEY;
     let URL = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${cityName}&format=json`
 
@@ -31,16 +49,18 @@ function locationHandler(req, res) {
         .then(geoData=>{
             let gData = geoData.body;
             let locationData = new Location(cityName,gData);
-            res.send(locationData);
-            
+            res.send(locationData); 
         })
           .catch(error=>{
             res.send(error);
         })
-   
- 
-  
-};
+  }   
+}
+
+
+
+
+
  
 function weatherHandler (request, response){
     let cityName = request.query.city;
@@ -82,9 +102,7 @@ function weatherHandler (request, response){
         }) 
  };
 
- server.get('*', (req, res) => {
-    res.status(500).send('Sorry, something went wrong');
-  })
+
 
 
 
