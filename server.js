@@ -19,10 +19,9 @@ const client = new pg.Client({ connectionString: process.env.DATABASE_URL,   ssl
 
 server.get('/location',locationHandler) 
 server.get('/weather',weatherHandler)
-
 server.get('/parks',parkHandler)
-
-server.get('/park',parkHandler)
+server.get('/movies',movieHandler)
+server.get('/yelp',yelpHandler)
 
 server.get('*', (req, res) => {
   res.status(500).send('Sorry, something went wrong');
@@ -47,7 +46,6 @@ function locationHandler(req,res){
   }else{
     let key =  process.env.LOCATION_KEY;
     let URL = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${cityName}&format=json`
-
     superagent.get(URL) 
         .then(geoData=>{
             let gData = geoData.body;
@@ -96,6 +94,7 @@ function weatherHandler (request, response){
             pData.forEach((item)=>{
                 dataPark.push(new Park(cityName,item)); 
              })
+
             res.send(dataPark);  
         })
         .catch(error=>{
@@ -103,8 +102,43 @@ function weatherHandler (request, response){
         }) 
  };
 
+ function movieHandler(req,res){
+  let cityName = req.query.search_query;
+  let key = process.env.MOVIE_KEY;
+    let mURL = `https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${cityName}`
+    
+    superagent.get(mURL) 
+        .then(movieData=>{
+          let mData = movieData.body.results;
+          let moviesData = new Movie(cityName,mData[0]);
+          res.send(moviesData); 
+        })
+        .catch(error=>{
+          res.send(error);
+        })
 
+ }
 
+ function yelpHandler(req,res){
+  let cityName = req.query.search_query;
+  let key = process.env.YELP_KEY;
+  let page= req.query.page;
+  const pages= 5;
+  const startPage = ((page-1)*pages+1)
+    let yURL = `https://api.yelp.com/v3/search?api_key=${key}&query=${cityName}&limits=${pages}&offset=${startPage}`
+    
+    superagent.get(yURL) 
+        .then(yelpData=>{
+          console.log(yelpData.body)
+          let yData = yelpData.body.results;
+          let yelpsData = new Yelp(cityName,yData[0]);
+          res.send(yelpsData); 
+        })
+        .catch(error=>{
+          res.send(error);
+        })
+
+ }
 
 
 let Location= function(cityName,locObj){
@@ -130,5 +164,26 @@ let Park= function(cityName,parkObj){
     this.description=parkObj.description;
     this.url=parkObj.directionsUrl;
 };
+let Movie= function(cityName,movieObj){
 
+  this.search_query=cityName;
+  this.title=movieObj.original_title;
+  this.overview=movieObj.overview;
+  this.average_votes=movieObj.vote_average;
+  this.total_votes=movieObj.vote_count;
+  this.image_url=movieObj.poster_path;
+  this.popularity=movieObj.popularity;
+  this.released_on=movieObj.genre_ids;
+};
+
+let Yelp= function(cityName,yelpObj){
+
+  this.search_query=cityName;
+  this.name=yelpObj.name;
+  this.image_url=yelpObj.image_url;
+  this.price=yelpObj.price;
+  this.rating=yelpObj.rating;
+  this.url=yelpObj.url;
+ 
+};
 
