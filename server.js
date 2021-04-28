@@ -24,7 +24,7 @@ server.get('*', (req, res) => {
   res.status(500).send('Sorry, something went wrong');
 })
 
-// console.log(SELECT )
+
 function locationHandler(req,res){
   let cityName = req.query.city;
   let locName = req.query.loc_name;
@@ -50,6 +50,7 @@ function locationHandler(req,res){
             let locationData = new Location(cityName,gData);
             res.send(locationData); 
         })
+        
           .catch(error=>{
             res.send(error);
         })
