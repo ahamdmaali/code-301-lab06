@@ -5,5 +5,3 @@ CREATE TABLE IF NOT EXISTS location (
 )
 
 
-INSERT INTO location (loc_name, longitude, latitude, ...)
-VALUES ('amman', '3' , '1', ...);
