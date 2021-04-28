@@ -19,7 +19,11 @@ const client = new pg.Client({ connectionString: process.env.DATABASE_URL,   ssl
 
 server.get('/location',locationHandler) 
 server.get('/weather',weatherHandler)
+
 server.get('/parks',parkHandler)
+
+server.get('/park',parkHandler)
+
 server.get('*', (req, res) => {
   res.status(500).send('Sorry, something went wrong');
 })
