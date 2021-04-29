@@ -27,34 +27,36 @@ server.get('*', (req, res) => {
 
 function locationHandler(req,res){
   let cityName = req.query.city;
-  let locName = req.query.loc_name;
-  let lon = req.query.longitude;
-  let lat = req.query.latitude;
-  let SQL = `INSERT INTO location (loc_name,longitude,latitude) VALUES ($1,$2,$3) RETURNING *;`;
-  let safeValues = [locName,lon,lat];
-  if(locName ===cityName ){
-    client.query(SQL,safeValues)
-    .then(result=>{
-        res.send(result.rows); 
-    })
-    .catch(error=>{
-      res.send(error);
-  })
-  }else{
-    let key =  process.env.LOCATION_KEY;
-    let URL = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${cityName}&format=json`
+  let key =  process.env.LOCATION_KEY;
+  let URL = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${cityName}&format=json`
 
-    superagent.get(URL) 
-        .then(geoData=>{
-            let gData = geoData.body;
-            let locationData = new Location(cityName,gData);
-            res.send(locationData); 
-        })
+  let SQL = 'SELECT * FROM location WHERE search_query=$1 ';
+  client.query(SQL,[cityName])
+  .then(locData=>{
+    if(locData.rowCount>0){
+      res.send( locData.rows[0])
+    }else {
+      superagent.get(URL) 
+      .then(geoData=>{
+          let gData = geoData.body;
+          console.log(gData)
+          let locationData = new Location(cityName,gData);
         
-          .catch(error=>{
-            res.send(error);
-        })
-  }   
+          let search_query= cityName;
+          let formatted_query= gData[0].display_name;
+          let lon = gData[0].lon;
+          let lat = gData[0].lat;
+          let SQL = 'INSERT INTO location (search_query,formatted_query,longitude,latitude) VALUES ($1,$2,$3,$4);';
+          let safeValues = [search_query,formatted_query,lon,lat];
+          client.query(SQL,safeValues);
+          res.send(locationData); 
+      })
+      
+        .catch(error=>{
+          res.send(error);
+      })
+    }
+  })
 }
 
 
@@ -84,7 +86,6 @@ function weatherHandler (request, response){
 
  function parkHandler(req,res){
     let cityName = req.query.search_query;
-    console.log(cityName)
     let key = process.env.PARK_KEY;
     let pURL = `https://developer.nps.gov/api/v1/parks?q=${cityName}&api_key=${key}`
     
@@ -109,7 +110,7 @@ function weatherHandler (request, response){
 
 let Location= function(cityName,locObj){
     this.search_query=cityName;
-    this.formatted_query= locObj[0].display_namey;
+    this.formatted_query= locObj[0].display_name;
     this.latitude= locObj[0].lat;
     this.longitude= locObj[0].lon;
   };
