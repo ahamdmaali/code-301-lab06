@@ -4,3 +4,4 @@ CREATE TABLE IF NOT EXISTS location (
     longitude VARCHAR(255),
     latitude VARCHAR(255)
 )
+
