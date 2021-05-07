@@ -22,6 +22,7 @@ server.get('/weather',weatherHandler)
 server.get('/parks',parkHandler)
 server.get('/movies',movieHandler)
 server.get('/yelp',yelpHandler)
+
 server.get('*', (req, res) => {
   res.status(500).send('Sorry, something went wrong');
 })
@@ -86,7 +87,6 @@ function weatherHandler (request, response){
     let cityName = req.query.search_query;
     let key = process.env.PARK_KEY;
     let pURL = `https://developer.nps.gov/api/v1/parks?q=${cityName}&api_key=${key}`
-    
     superagent.get(pURL) 
         .then(parkData=>{
             let pData = parkData.body.data;
@@ -94,7 +94,7 @@ function weatherHandler (request, response){
             pData.forEach((item)=>{
                 dataPark.push(new Park(cityName,item)); 
              })
-            
+
             res.send(dataPark);  
         })
         .catch(error=>{
@@ -190,3 +190,4 @@ let Yelp= function(cityName,yelpObj){
   this.url=yelpObj.url;
  
 };
+
