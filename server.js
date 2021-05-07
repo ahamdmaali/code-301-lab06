@@ -120,19 +120,23 @@ function weatherHandler (request, response){
  }
 
  function yelpHandler(req,res){
+   let yelpArr=[];
   let cityName = req.query.search_query;
   let key = process.env.YELP_KEY;
-  let page= req.query.page;
+  let pageN= req.query.page;
   const pages= 5;
-  const startPage = ((page-1)*pages+1)
-    let yURL = `https://api.yelp.com/v3/search?api_key=${key}&query=${cityName}&limits=${pages}&offset=${startPage}`
+  const startPage = (pageN - 1) * pages + 1;
+    let yURL = `https://api.yelp.com/v3/businesses/search?location=${cityName}&limit=${pages}&offset=${startPage}`
     
-    superagent.get(yURL) 
+    superagent.get(yURL)
+        .set('Authorization', `Bearer ${key}`) 
         .then(yelpData=>{
-          console.log(yelpData.body)
-          let yData = yelpData.body.results;
-          let yelpsData = new Yelp(cityName,yData[0]);
-          res.send(yelpsData); 
+          // console.log(yelpData.body)
+          let yData = yelpData.body.businesses;
+          yData.forEach(item=>{
+           yelpArr.push(new Yelp(cityName,item))
+          })
+          res.send(yelpArr); 
         })
         .catch(error=>{
           res.send(error);
