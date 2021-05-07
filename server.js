@@ -132,7 +132,7 @@ function weatherHandler (request, response){
   let pageN= req.query.page;
   const pages= 5;
   const startPage = (pageN - 1) * pages + 1;
-    let yURL = `https://api.yelp.com/v3/businesses/search?location=${cityName}&limit=${pages}&offset=${startPage}`
+    let yURL = `https://api.yelp.com/v3/businesses/search?location=${cityName}&limit=${pages}`
     
     superagent.get(yURL)
         .set('Authorization', `Bearer ${key}`) 
